@@ -2,12 +2,12 @@ package com.pragma.capacity.application.handler;
 
 import com.pragma.capacity.application.dto.request.CapacityRequestDto;
 import com.pragma.capacity.application.dto.response.CapacityResponseDto;
-import reactor.core.publisher.Flux;
+import com.pragma.capacity.application.dto.response.PagedResponseDto;
 import reactor.core.publisher.Mono;
 
 public interface ICapacityHandler {
 
     Mono<Void> saveCapacity(CapacityRequestDto capacityRequestDto);
 
-    Flux<CapacityResponseDto> getAllCapacities();
+    Mono<PagedResponseDto<CapacityResponseDto>> getAllCapacities(int page, int size, String sortBy, String direction);
 }

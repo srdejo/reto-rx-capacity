@@ -1,6 +1,7 @@
 package com.pragma.capacity.infrastructure.exceptionhandler;
 
 import com.pragma.capacity.domain.exception.DuplicateTechnologyException;
+import com.pragma.capacity.domain.exception.InvalidPaginationParameterException;
 import com.pragma.capacity.domain.exception.InvalidTechnologyCountException;
 import com.pragma.capacity.domain.exception.TechnologyNotFoundException;
 import com.pragma.capacity.domain.exception.TechnologyServiceUnavailableException;
@@ -56,6 +57,13 @@ public class ControllerAdvisor {
                 .body(Collections.singletonMap(MESSAGE, ExceptionResponse.TECHNOLOGY_SERVICE_UNAVAILABLE.getMessage()));
     }
 
+
+    @ExceptionHandler(InvalidPaginationParameterException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPaginationParameterException(
+            InvalidPaginationParameterException ignore) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Collections.singletonMap(MESSAGE, ExceptionResponse.INVALID_PAGINATION_PARAMETERS.getMessage()));
+    }
 
     @ExceptionHandler(WebExchangeBindException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(WebExchangeBindException exception) {

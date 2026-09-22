@@ -10,6 +10,7 @@ public enum ExceptionResponse {
     DUPLICATE_TECHNOLOGY_ID("Duplicate technology id"),
     TECHNOLOGY_NOT_FOUND("One or more technologies do not exist"),
     TECHNOLOGY_SERVICE_UNAVAILABLE("Technology service is unavailable, please try again later"),
+    INVALID_PAGINATION_PARAMETERS("Invalid pagination, sortBy or direction parameters"),
     ;
 
     private final String message;
