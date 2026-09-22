@@ -1,5 +1,6 @@
 package com.pragma.capacity.infrastructure.exceptionhandler;
 
+import com.pragma.capacity.domain.exception.CapacityNotFoundException;
 import com.pragma.capacity.domain.exception.DuplicateTechnologyException;
 import com.pragma.capacity.domain.exception.InvalidPaginationParameterException;
 import com.pragma.capacity.domain.exception.InvalidTechnologyCountException;
@@ -57,6 +58,13 @@ public class ControllerAdvisor {
                 .body(Collections.singletonMap(MESSAGE, ExceptionResponse.TECHNOLOGY_SERVICE_UNAVAILABLE.getMessage()));
     }
 
+
+    @ExceptionHandler(CapacityNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCapacityNotFoundException(
+            CapacityNotFoundException ignore) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Collections.singletonMap(MESSAGE, ExceptionResponse.CAPACITY_NOT_FOUND.getMessage()));
+    }
 
     @ExceptionHandler(InvalidPaginationParameterException.class)
     public ResponseEntity<Map<String, String>> handleInvalidPaginationParameterException(

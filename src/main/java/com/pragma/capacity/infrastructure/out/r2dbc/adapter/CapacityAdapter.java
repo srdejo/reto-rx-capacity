@@ -12,6 +12,8 @@ import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class CapacityAdapter implements ICapacityPersistencePort {
 
@@ -41,5 +43,12 @@ public class CapacityAdapter implements ICapacityPersistencePort {
     @Override
     public Mono<Long> countCapacities() {
         return capacityRepository.count();
+    }
+
+    @Override
+    public Flux<Long> findExistingCapacityIds(List<Long> capacityIds) {
+        return capacityRepository.findAllById(capacityIds)
+                .map(capacityEntityMapper::toCapacityModel)
+                .map(CapacityModel::getId);
     }
 }

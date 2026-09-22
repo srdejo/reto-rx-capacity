@@ -1,19 +1,23 @@
 package com.pragma.capacity.domain.usecase;
 
 import com.pragma.capacity.domain.api.ICapacityServicePort;
+import com.pragma.capacity.domain.exception.CapacityNotFoundException;
 import com.pragma.capacity.domain.exception.DuplicateTechnologyException;
 import com.pragma.capacity.domain.exception.InvalidPaginationParameterException;
 import com.pragma.capacity.domain.exception.InvalidTechnologyCountException;
+import com.pragma.capacity.domain.model.BootcampCapacitiesModel;
 import com.pragma.capacity.domain.model.CapacityModel;
 import com.pragma.capacity.domain.util.enums.CapacitySortBy;
 import com.pragma.capacity.domain.model.CapacityTechnologies;
 import com.pragma.capacity.domain.util.PagedResult;
 import com.pragma.capacity.domain.util.enums.SortDirection;
 import com.pragma.capacity.domain.model.TechnologyModel;
+import com.pragma.capacity.domain.spi.IBootcampCapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ITechnologyClientPort;
 import com.pragma.capacity.domain.util.DomainConstants;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
@@ -27,10 +31,13 @@ public class CapacityUseCase implements ICapacityServicePort {
 
     private final ICapacityPersistencePort capacityPersistencePort;
     private final ITechnologyClientPort technologyClientPort;
+    private final IBootcampCapacityPersistencePort bootcampCapacityPersistencePort;
 
-    public CapacityUseCase(ICapacityPersistencePort capacityPersistencePort, ITechnologyClientPort technologyClientPort) {
+    public CapacityUseCase(ICapacityPersistencePort capacityPersistencePort, ITechnologyClientPort technologyClientPort,
+                            IBootcampCapacityPersistencePort bootcampCapacityPersistencePort) {
         this.capacityPersistencePort = capacityPersistencePort;
         this.technologyClientPort = technologyClientPort;
+        this.bootcampCapacityPersistencePort = bootcampCapacityPersistencePort;
     }
 
     @Override
@@ -125,5 +132,22 @@ public class CapacityUseCase implements ICapacityServicePort {
     private PagedResult<CapacityModel> toPagedResult(List<CapacityModel> pageContent, int page, int size, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         return new PagedResult<>(pageContent, page, size, totalElements, totalPages);
+    }
+
+    @Override
+    public Mono<Void> saveBootcampCapacities(Long bootcampId, List<Long> capacityIds) {
+        return capacityPersistencePort.findExistingCapacityIds(capacityIds)
+                .collectList()
+                .flatMap(existingIds -> {
+                    if (existingIds.size() != capacityIds.size()) {
+                        return Mono.error(new CapacityNotFoundException());
+                    }
+                    return bootcampCapacityPersistencePort.saveBootcampCapacities(bootcampId, capacityIds);
+                });
+    }
+
+    @Override
+    public Flux<BootcampCapacitiesModel> getCapacitiesByBootcampIds(List<Long> bootcampIds) {
+        return bootcampCapacityPersistencePort.getCapacitiesByBootcampIds(bootcampIds);
     }
 }

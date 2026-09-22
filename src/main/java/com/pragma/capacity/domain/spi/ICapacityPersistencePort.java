@@ -5,6 +5,8 @@ import com.pragma.capacity.domain.util.enums.SortDirection;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public interface ICapacityPersistencePort {
     Mono<CapacityModel> saveCapacity(CapacityModel capacityModel);
 
@@ -13,4 +15,6 @@ public interface ICapacityPersistencePort {
     Flux<CapacityModel> getCapacitiesPageSortedByName(int page, int size, SortDirection direction);
 
     Mono<Long> countCapacities();
+
+    Flux<Long> findExistingCapacityIds(List<Long> capacityIds);
 }
