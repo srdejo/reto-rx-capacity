@@ -1,6 +1,8 @@
 package com.pragma.capacity.application.handler.impl;
 
+import com.pragma.capacity.application.dto.request.BootcampCapacitiesRequestDto;
 import com.pragma.capacity.application.dto.request.CapacityRequestDto;
+import com.pragma.capacity.application.dto.response.BootcampCapacitiesResponseDto;
 import com.pragma.capacity.application.dto.response.CapacityResponseDto;
 import com.pragma.capacity.application.dto.response.PagedResponseDto;
 import com.pragma.capacity.application.handler.ICapacityHandler;
@@ -12,7 +14,10 @@ import com.pragma.capacity.domain.util.enums.CapacitySortBy;
 import com.pragma.capacity.domain.util.enums.SortDirection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,5 +62,18 @@ public class CapacityHandler implements ICapacityHandler {
         return value.replaceAll("([a-z])([A-Z])", "$1_$2")
                 .replace("-", "_")
                 .toUpperCase();
+    }
+
+    @Override
+    public Mono<Void> saveBootcampCapacities(BootcampCapacitiesRequestDto bootcampCapacitiesRequestDto) {
+        return capacityServicePort.saveBootcampCapacities(
+                bootcampCapacitiesRequestDto.bootcampId(),
+                bootcampCapacitiesRequestDto.capacityIds());
+    }
+
+    @Override
+    public Flux<BootcampCapacitiesResponseDto> getCapacitiesByBootcampIds(List<Long> bootcampIds) {
+        return capacityServicePort.getCapacitiesByBootcampIds(bootcampIds)
+                .map(capacityResponseMapper::toResponse);
     }
 }
