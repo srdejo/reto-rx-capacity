@@ -10,5 +10,8 @@ spring:
     init:
       mode: always
 
+webclient:
+  technology: ${WEBCLIENT_TECHNOLOGY:http://localhost:8084/api/v1/technology/capacity-technologies}
+
 appDescription: "Pragma Reactive Capacity"
 appVersion: "1.0.0"

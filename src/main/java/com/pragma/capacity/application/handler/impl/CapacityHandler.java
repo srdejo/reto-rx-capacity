@@ -21,11 +21,14 @@ public class CapacityHandler implements ICapacityHandler {
 
     @Override
     public Mono<Void> saveCapacity(CapacityRequestDto capacityRequestDto) {
-        return capacityServicePort.saveCapacity(capacityRequestMapper.toCapacity(capacityRequestDto)).then();
+        return capacityServicePort.saveCapacity(
+                capacityRequestMapper.toCapacity(capacityRequestDto),
+                capacityRequestDto.getTechnologyIds()
+        ).then();
     }
 
     @Override
-    public Flux<CapacityResponseDto> getAllCapacitys() {
-        return capacityServicePort.getAllCapacitys().map(capacityResponseMapper::toResponse);
+    public Flux<CapacityResponseDto> getAllCapacities() {
+        return capacityServicePort.getAllCapacities().map(capacityResponseMapper::toResponse);
     }
 }

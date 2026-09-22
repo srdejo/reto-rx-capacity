@@ -33,21 +33,21 @@ public class CapacityRestController {
             @ApiResponse(responseCode = "201", description = "Capacity created", content = @Content),
             @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content)
     })
-    @PostMapping("/")
+    @PostMapping()
     public Mono<ResponseEntity<Void>> saveCapacity(@Valid @RequestBody CapacityRequestDto capacityRequestDto) {
         return capacityHandler.saveCapacity(capacityRequestDto)
                 .thenReturn(new ResponseEntity<>(HttpStatus.CREATED));
     }
 
-    @Operation(summary = "Get all capacitys")
+    @Operation(summary = "Get all capacities")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All capacitys returned",
+            @ApiResponse(responseCode = "200", description = "All capacities returned",
                     content = @Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = CapacityResponseDto.class)))),
             @ApiResponse(responseCode = "404", description = "No data found", content = @Content)
     })
-    @GetMapping("/")
-    public Flux<CapacityResponseDto> getAllCapacitys() {
-        return capacityHandler.getAllCapacitys();
+    @GetMapping()
+    public Flux<CapacityResponseDto> getAllCapacities() {
+        return capacityHandler.getAllCapacities();
     }
 }

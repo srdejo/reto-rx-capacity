@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 public interface ICapacityPersistencePort {
     Mono<CapacityModel> saveCapacity(CapacityModel capacityModel);
 
-    Flux<CapacityModel> getAllCapacitys();
+    Flux<CapacityModel> getAllCapacities();
 }
