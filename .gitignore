@@ -38,7 +38,4 @@ out/
 
 # extra
 .env
-.vscode/
 *.log
-HELP.md
-out/

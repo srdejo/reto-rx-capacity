@@ -65,7 +65,9 @@ class CapacityUseCaseTest {
     // Criterio: el servicio debe estar paginado.
     @Test
     void getAllCapacitiesReturnsRequestedPage() {
-        mockCapacitiesWithTechnologies();
+        mockCapacitiesPageSortedByName(List.of(
+                new CapacityModel(1L, "Backend"),
+                new CapacityModel(3L, "Data")), 3);
 
         PagedResult<CapacityModel> result = useCase.getAllCapacities(0, 2, CapacitySortBy.NAME, SortDirection.ASC)
                 .block();
@@ -80,7 +82,10 @@ class CapacityUseCaseTest {
     // Criterio: cada capacidad listada debe traer sus tecnologias solo con id y nombre.
     @Test
     void getAllCapacitiesAttachesTechnologiesWithIdAndName() {
-        mockCapacitiesWithTechnologies();
+        mockCapacitiesPageSortedByName(List.of(
+                new CapacityModel(1L, "Backend"),
+                new CapacityModel(3L, "Data"),
+                new CapacityModel(2L, "Frontend")), 3);
 
         PagedResult<CapacityModel> result = useCase.getAllCapacities(0, 10, CapacitySortBy.NAME, SortDirection.ASC)
                 .block();
@@ -117,5 +122,21 @@ class CapacityUseCaseTest {
                                 new TechnologyModel(14L, "Spark"),
                                 new TechnologyModel(15L, "Airflow")))
                 ));
+    }
+
+    private void mockCapacitiesPageSortedByName(List<CapacityModel> pageContent, long totalElements) {
+        when(port.getCapacitiesPageSortedByName(anyInt(), anyInt(), any(SortDirection.class)))
+                .thenReturn(Flux.fromIterable(pageContent));
+        when(port.countCapacities()).thenReturn(Mono.just(totalElements));
+
+        List<Long> ids = pageContent.stream().map(CapacityModel::getId).toList();
+        when(technologyClientPort.getTechnologiesByCapacityIds(ids)).thenReturn(Flux.just(
+                new CapacityTechnologies(1L, List.of(
+                        new TechnologyModel(10L, "Java"),
+                        new TechnologyModel(11L, "Spring"))),
+                new CapacityTechnologies(2L, List.of(
+                        new TechnologyModel(12L, "React"))),
+                new CapacityTechnologies(3L, List.of(
+                        new TechnologyModel(13L, "Python")))));
     }
 }
