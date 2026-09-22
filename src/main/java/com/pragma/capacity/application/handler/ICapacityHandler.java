@@ -9,5 +9,5 @@ public interface ICapacityHandler {
 
     Mono<Void> saveCapacity(CapacityRequestDto capacityRequestDto);
 
-    Flux<CapacityResponseDto> getAllCapacitys();
+    Flux<CapacityResponseDto> getAllCapacities();
 }
