@@ -20,6 +20,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.pragma.capacity.domain.util.enums.CapacitySortBy.NAME;
+
 @Transactional
 public class CapacityUseCase implements ICapacityServicePort {
 
@@ -53,10 +55,24 @@ public class CapacityUseCase implements ICapacityServicePort {
             throw new InvalidPaginationParameterException();
         }
 
+        return sortBy == NAME
+                ? getPageSortedByName(page, size, direction)
+                : getPageSortedByTechnologyCount(page, size, direction);
+    }
+
+    private Mono<PagedResult<CapacityModel>> getPageSortedByName(int page, int size, SortDirection direction) {
+        return capacityPersistencePort.getCapacitiesPageSortedByName(page, size, direction)
+                .collectList()
+                .zipWith(capacityPersistencePort.countCapacities())
+                .flatMap(pageAndCount -> attachTechnologies(pageAndCount.getT1())
+                        .map(withTechnologies -> toPagedResult(withTechnologies, page, size, pageAndCount.getT2())));
+    }
+
+    private Mono<PagedResult<CapacityModel>> getPageSortedByTechnologyCount(int page, int size, SortDirection direction) {
         return capacityPersistencePort.getAllCapacities()
                 .collectList()
                 .flatMap(capacities -> attachTechnologies(capacities)
-                        .map(withTechnologies -> buildPage(withTechnologies, page, size, sortBy, direction)));
+                        .map(withTechnologies -> buildPageSortedByTechnologyCount(withTechnologies, page, size, direction)));
     }
 
 
@@ -88,25 +104,26 @@ public class CapacityUseCase implements ICapacityServicePort {
                 });
     }
 
-    private PagedResult<CapacityModel> buildPage(List<CapacityModel> capacities, int page, int size,
-                                                  CapacitySortBy sortBy, SortDirection direction) {
-        Comparator<CapacityModel> comparator = sortBy == CapacitySortBy.TECHNOLOGY_COUNT
-                ? Comparator.comparingInt(capacity -> capacity.getTechnologies().size())
-                : Comparator.comparing(CapacityModel::getName, String.CASE_INSENSITIVE_ORDER);
-
+    private PagedResult<CapacityModel> buildPageSortedByTechnologyCount(List<CapacityModel> capacities, int page, int size,
+                                                                         SortDirection direction) {
+        Comparator<CapacityModel> comparator = Comparator.comparingInt(capacity -> capacity.getTechnologies().size());
         if (direction == SortDirection.DESC) {
             comparator = comparator.reversed();
         }
 
         List<CapacityModel> sorted = capacities.stream().sorted(comparator).toList();
         long totalElements = sorted.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
 
         List<CapacityModel> pageContent = sorted.stream()
                 .skip((long) page * size)
                 .limit(size)
                 .toList();
 
+        return toPagedResult(pageContent, page, size, totalElements);
+    }
+
+    private PagedResult<CapacityModel> toPagedResult(List<CapacityModel> pageContent, int page, int size, long totalElements) {
+        int totalPages = (int) Math.ceil((double) totalElements / size);
         return new PagedResult<>(pageContent, page, size, totalElements, totalPages);
     }
 }
