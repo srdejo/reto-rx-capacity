@@ -148,6 +148,17 @@ public class CapacityUseCase implements ICapacityServicePort {
 
     @Override
     public Flux<BootcampCapacitiesModel> getCapacitiesByBootcampIds(List<Long> bootcampIds) {
-        return bootcampCapacityPersistencePort.getCapacitiesByBootcampIds(bootcampIds);
+        return bootcampCapacityPersistencePort.getCapacitiesByBootcampIds(bootcampIds)
+                .collectList()
+                .flatMapMany(this::attachTechnologiesToBootcampCapacities);
+    }
+
+    private Flux<BootcampCapacitiesModel> attachTechnologiesToBootcampCapacities(List<BootcampCapacitiesModel> bootcampCapacities) {
+        List<CapacityModel> capacities = bootcampCapacities.stream()
+                .flatMap(bootcampCapacity -> bootcampCapacity.capacities().stream())
+                .toList();
+
+        return attachTechnologies(capacities)
+                .thenMany(Flux.fromIterable(bootcampCapacities));
     }
 }
