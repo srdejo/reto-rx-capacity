@@ -7,6 +7,8 @@ import com.pragma.capacity.domain.model.TechnologyModel;
 import com.pragma.capacity.domain.spi.ITechnologyClientPort;
 import com.pragma.capacity.infrastructure.out.webclient.dto.CapacityTechnologiesClientDto;
 import com.pragma.capacity.infrastructure.out.webclient.dto.CapacityTechnologiesDto;
+import com.pragma.capacity.infrastructure.security.SecurityContextTokenSupport;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -30,31 +32,35 @@ public class TechnologyWebClientAdapter implements ITechnologyClientPort {
 
         CapacityTechnologiesDto body = new CapacityTechnologiesDto(capacityId, technologyIds);
 
-        return webClientBuilder
-                .baseUrl(technologyUrl)
-                .build()
-                .post()
-                .bodyValue(body)
-                .retrieve()
-                .onStatus(status -> status.value() == 404, _ -> Mono.error(new TechnologyNotFoundException()))
-                .onStatus(HttpStatusCode::is5xxServerError,
-                        _ -> Mono.error(new TechnologyServiceUnavailableException()))
-                .bodyToMono(Void.class)
+        return SecurityContextTokenSupport.currentToken()
+                .flatMap(token -> webClientBuilder
+                        .baseUrl(technologyUrl)
+                        .build()
+                        .post()
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .bodyValue(body)
+                        .retrieve()
+                        .onStatus(status -> status.value() == 404, _ -> Mono.error(new TechnologyNotFoundException()))
+                        .onStatus(HttpStatusCode::is5xxServerError,
+                                _ -> Mono.error(new TechnologyServiceUnavailableException()))
+                        .bodyToMono(Void.class))
                 .onErrorMap(WebClientRequestException.class, _ -> new TechnologyServiceUnavailableException());
     }
 
     @Override
     public Flux<CapacityTechnologies> getTechnologiesByCapacityIds(List<Long> capacityIds) {
-        return webClientBuilder
-                .baseUrl(technologyUrl)
-                .build()
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                        .queryParam("capacityIds", capacityIds)
-                        .build())
-                .retrieve()
-                .onStatus(HttpStatusCode::is5xxServerError, _ -> Mono.error(new TechnologyServiceUnavailableException()))
-                .bodyToFlux(CapacityTechnologiesClientDto.class)
+        return SecurityContextTokenSupport.currentToken()
+                .flatMapMany(token -> webClientBuilder
+                        .baseUrl(technologyUrl)
+                        .build()
+                        .get()
+                        .uri(uriBuilder -> uriBuilder
+                                .queryParam("capacityIds", capacityIds)
+                                .build())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .retrieve()
+                        .onStatus(HttpStatusCode::is5xxServerError, _ -> Mono.error(new TechnologyServiceUnavailableException()))
+                        .bodyToFlux(CapacityTechnologiesClientDto.class))
                 .onErrorMap(WebClientRequestException.class, _ -> new TechnologyServiceUnavailableException())
                 .map(dto -> new CapacityTechnologies(
                         dto.capacityId(),
@@ -69,17 +75,19 @@ public class TechnologyWebClientAdapter implements ITechnologyClientPort {
             return Mono.empty();
         }
 
-        return webClientBuilder
-                .baseUrl(technologyUrl)
-                .build()
-                .delete()
-                .uri(uriBuilder -> uriBuilder
-                        .queryParam("capacityIds", capacityIds)
-                        .build())
-                .retrieve()
-                .onStatus(HttpStatusCode::is5xxServerError,
-                        _ -> Mono.error(new TechnologyServiceUnavailableException()))
-                .bodyToMono(Void.class)
+        return SecurityContextTokenSupport.currentToken()
+                .flatMap(token -> webClientBuilder
+                        .baseUrl(technologyUrl)
+                        .build()
+                        .delete()
+                        .uri(uriBuilder -> uriBuilder
+                                .queryParam("capacityIds", capacityIds)
+                                .build())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .retrieve()
+                        .onStatus(HttpStatusCode::is5xxServerError,
+                                _ -> Mono.error(new TechnologyServiceUnavailableException()))
+                        .bodyToMono(Void.class))
                 .onErrorMap(WebClientRequestException.class, _ -> new TechnologyServiceUnavailableException());
     }
 }
