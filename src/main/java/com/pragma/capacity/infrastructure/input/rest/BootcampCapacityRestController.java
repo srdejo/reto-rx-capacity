@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -32,6 +33,7 @@ public class BootcampCapacityRestController {
             @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content),
             @ApiResponse(responseCode = "404", description = "One or more capacities do not exist", content = @Content)
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
     public Mono<ResponseEntity<Void>> saveBootcampCapacities(@Valid @RequestBody BootcampCapacitiesRequestDto bootcampCapacitiesRequestDto) {
         return bootcampCapacityHandler.saveBootcampCapacities(bootcampCapacitiesRequestDto)
@@ -49,6 +51,7 @@ public class BootcampCapacityRestController {
         return bootcampCapacityHandler.getCapacitiesByBootcampIds(bootcampIds);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{bootcampId}")
     public Mono<Void> deleteBootcampCapacities(@PathVariable Long bootcampId) {
         return bootcampCapacityHandler.deleteBootcamp(bootcampId);

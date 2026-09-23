@@ -15,5 +15,8 @@ webclient:
 
 allowed-origins: ${ALLOWED_ORIGIN:http://localhost:4200}
 
+jwt:
+  secret: ${JWT_SECRET:change-this-secret-change-this-secret-32bytes}
+
 appDescription: "Pragma Reactive Capacity"
 appVersion: "1.0.0"
