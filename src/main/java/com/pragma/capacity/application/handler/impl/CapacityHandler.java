@@ -12,6 +12,7 @@ import com.pragma.capacity.domain.util.enums.CapacitySortBy;
 import com.pragma.capacity.domain.util.enums.SortDirection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -23,6 +24,7 @@ public class CapacityHandler implements ICapacityHandler {
     private final ICapacityResponseMapper capacityResponseMapper;
 
     @Override
+    @Transactional
     public Mono<Void> saveCapacity(CapacityRequestDto capacityRequestDto) {
         return capacityServicePort.saveCapacity(
                 capacityRequestMapper.toCapacity(capacityRequestDto),

@@ -4,7 +4,6 @@ import com.pragma.capacity.domain.exception.InvalidTechnologyCountException;
 import com.pragma.capacity.domain.model.CapacityModel;
 import com.pragma.capacity.domain.model.CapacityTechnologies;
 import com.pragma.capacity.domain.model.TechnologyModel;
-import com.pragma.capacity.domain.spi.IBootcampCapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ITechnologyClientPort;
 import com.pragma.capacity.domain.usecase.CapacityUseCase;
@@ -26,8 +25,7 @@ class CapacityUseCaseTest {
 
     private final ICapacityPersistencePort port = mock(ICapacityPersistencePort.class);
     private final ITechnologyClientPort technologyClientPort = mock(ITechnologyClientPort.class);
-    private final IBootcampCapacityPersistencePort bootcampCapacityPersistencePort = mock(IBootcampCapacityPersistencePort.class);
-    private final CapacityUseCase useCase = new CapacityUseCase(port, technologyClientPort, bootcampCapacityPersistencePort);
+    private final CapacityUseCase useCase = new CapacityUseCase(port, technologyClientPort);
 
     @Test
     void saveCapacityDelegatesToPort() {

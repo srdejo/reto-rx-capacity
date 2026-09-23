@@ -7,6 +7,7 @@ import com.pragma.capacity.application.mapper.ICapacityResponseMapper;
 import com.pragma.capacity.domain.api.IBootcampCapacityServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,6 +22,7 @@ public class BootcampCapacityHandler implements IBootcampCapacityHandler {
 
 
     @Override
+    @Transactional
     public Mono<Void> saveBootcampCapacities(BootcampCapacitiesRequestDto bootcampCapacitiesRequestDto) {
         return bootcampCapacityServicePort.saveBootcampCapacities(
                 bootcampCapacitiesRequestDto.bootcampId(),
@@ -34,6 +36,7 @@ public class BootcampCapacityHandler implements IBootcampCapacityHandler {
     }
 
     @Override
+    @Transactional
     public Mono<Void> deleteBootcamp(Long bootcampId) {
         return bootcampCapacityServicePort.delete(bootcampId);
     }

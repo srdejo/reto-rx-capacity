@@ -5,24 +5,21 @@ import com.pragma.capacity.domain.exception.DuplicateTechnologyException;
 import com.pragma.capacity.domain.exception.InvalidPaginationParameterException;
 import com.pragma.capacity.domain.exception.InvalidTechnologyCountException;
 import com.pragma.capacity.domain.model.CapacityModel;
-import com.pragma.capacity.domain.model.CapacityTechnologies;
-import com.pragma.capacity.domain.model.TechnologyModel;
 import com.pragma.capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ITechnologyClientPort;
 import com.pragma.capacity.domain.util.DomainConstants;
 import com.pragma.capacity.domain.util.PagedResult;
 import com.pragma.capacity.domain.util.enums.CapacitySortBy;
 import com.pragma.capacity.domain.util.enums.SortDirection;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.pragma.capacity.domain.util.CapacityTechnologyUtils.attachTechnologies;
 import static com.pragma.capacity.domain.util.enums.CapacitySortBy.NAME;
 
-@Transactional
 public class CapacityUseCase implements ICapacityServicePort {
 
     private final ICapacityPersistencePort capacityPersistencePort;
@@ -64,14 +61,14 @@ public class CapacityUseCase implements ICapacityServicePort {
         return capacityPersistencePort.getCapacitiesPageSortedByName(page, size, direction)
                 .collectList()
                 .zipWith(capacityPersistencePort.countCapacities())
-                .flatMap(pageAndCount -> attachTechnologies(pageAndCount.getT1())
-                        .map(withTechnologies -> toPagedResult(withTechnologies, page, size, pageAndCount.getT2())));
+                .flatMap(pageAndCount -> attachTechnologies(pageAndCount.getT1(), technologyClientPort)
+                        .map(withTechnologies -> PagedResult.of(withTechnologies, page, size, pageAndCount.getT2())));
     }
 
     private Mono<PagedResult<CapacityModel>> getPageSortedByTechnologyCount(int page, int size, SortDirection direction) {
         return capacityPersistencePort.getAllCapacities()
                 .collectList()
-                .flatMap(capacities -> attachTechnologies(capacities)
+                .flatMap(capacities -> attachTechnologies(capacities, technologyClientPort)
                         .map(withTechnologies -> buildPageSortedByTechnologyCount(withTechnologies, page, size, direction)));
     }
 
@@ -85,23 +82,6 @@ public class CapacityUseCase implements ICapacityServicePort {
         if (technologyIds.size() != new HashSet<>(technologyIds).size()) {
             throw new DuplicateTechnologyException();
         }
-    }
-
-    private Mono<List<CapacityModel>> attachTechnologies(List<CapacityModel> capacities) {
-        List<Long> capacityIds = capacities.stream().map(CapacityModel::getId).toList();
-        if (capacityIds.isEmpty()) {
-            return Mono.just(capacities);
-        }
-
-        return technologyClientPort.getTechnologiesByCapacityIds(capacityIds)
-                .collectMap(CapacityTechnologies::capacityId, CapacityTechnologies::technologies)
-                .map(technologiesByCapacityId -> {
-                    capacities.forEach(capacity -> {
-                        List<TechnologyModel> technologies = technologiesByCapacityId.getOrDefault(capacity.getId(), List.of());
-                        capacity.setTechnologies(technologies);
-                    });
-                    return capacities;
-                });
     }
 
     private PagedResult<CapacityModel> buildPageSortedByTechnologyCount(List<CapacityModel> capacities, int page, int size,
@@ -119,11 +99,6 @@ public class CapacityUseCase implements ICapacityServicePort {
                 .limit(size)
                 .toList();
 
-        return toPagedResult(pageContent, page, size, totalElements);
-    }
-
-    private PagedResult<CapacityModel> toPagedResult(List<CapacityModel> pageContent, int page, int size, long totalElements) {
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        return new PagedResult<>(pageContent, page, size, totalElements, totalPages);
+        return PagedResult.of(pageContent, page, size, totalElements);
     }
 }
