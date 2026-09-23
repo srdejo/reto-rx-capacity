@@ -51,4 +51,9 @@ public class CapacityAdapter implements ICapacityPersistencePort {
                 .map(capacityEntityMapper::toCapacityModel)
                 .map(CapacityModel::getId);
     }
+
+    @Override
+    public Mono<Void> deleteCapacitiesByIds(List<Long> capacityIds) {
+        return capacityRepository.deleteAllById(capacityIds);
+    }
 }

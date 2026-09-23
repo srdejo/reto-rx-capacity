@@ -36,11 +36,11 @@ public class TechnologyWebClientAdapter implements ITechnologyClientPort {
                 .post()
                 .bodyValue(body)
                 .retrieve()
-                .onStatus(status -> status.value() == 404, response -> Mono.error(new TechnologyNotFoundException()))
+                .onStatus(status -> status.value() == 404, _ -> Mono.error(new TechnologyNotFoundException()))
                 .onStatus(HttpStatusCode::is5xxServerError,
-                        response -> Mono.error(new TechnologyServiceUnavailableException()))
+                        _ -> Mono.error(new TechnologyServiceUnavailableException()))
                 .bodyToMono(Void.class)
-                .onErrorMap(WebClientRequestException.class, ex -> new TechnologyServiceUnavailableException());
+                .onErrorMap(WebClientRequestException.class, _ -> new TechnologyServiceUnavailableException());
     }
 
     @Override
@@ -61,5 +61,25 @@ public class TechnologyWebClientAdapter implements ITechnologyClientPort {
                         dto.technologies().stream()
                                 .map(technology -> new TechnologyModel(technology.id(), technology.name()))
                                 .toList()));
+    }
+
+    @Override
+    public Mono<Void> deleteTechnologiesByCapacityIds(List<Long> capacityIds) {
+        if (capacityIds.isEmpty()) {
+            return Mono.empty();
+        }
+
+        return webClientBuilder
+                .baseUrl(technologyUrl)
+                .build()
+                .delete()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("capacityIds", capacityIds)
+                        .build())
+                .retrieve()
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        _ -> Mono.error(new TechnologyServiceUnavailableException()))
+                .bodyToMono(Void.class)
+                .onErrorMap(WebClientRequestException.class, _ -> new TechnologyServiceUnavailableException());
     }
 }

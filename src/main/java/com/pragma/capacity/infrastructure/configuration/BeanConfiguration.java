@@ -1,9 +1,11 @@
 package com.pragma.capacity.infrastructure.configuration;
 
+import com.pragma.capacity.domain.api.IBootcampCapacityServicePort;
 import com.pragma.capacity.domain.api.ICapacityServicePort;
 import com.pragma.capacity.domain.spi.IBootcampCapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ITechnologyClientPort;
+import com.pragma.capacity.domain.usecase.BootcampCapacityUseCase;
 import com.pragma.capacity.domain.usecase.CapacityUseCase;
 import com.pragma.capacity.infrastructure.out.r2dbc.adapter.BootcampCapacityAdapter;
 import com.pragma.capacity.infrastructure.out.r2dbc.adapter.CapacityAdapter;
@@ -39,7 +41,12 @@ public class BeanConfiguration {
 
     @Bean
     public ICapacityServicePort capacityServicePort() {
-        return new CapacityUseCase(capacityPersistencePort(), technologyClientPort(), bootcampCapacityPersistencePort());
+        return new CapacityUseCase(capacityPersistencePort(), technologyClientPort());
+    }
+
+    @Bean
+    public IBootcampCapacityServicePort  bootcampCapacityServicePort() {
+        return new BootcampCapacityUseCase(capacityPersistencePort(), technologyClientPort(),  bootcampCapacityPersistencePort());
     }
 
     @Bean

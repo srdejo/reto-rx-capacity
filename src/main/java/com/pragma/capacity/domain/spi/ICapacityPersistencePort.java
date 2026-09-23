@@ -17,4 +17,6 @@ public interface ICapacityPersistencePort {
     Mono<Long> countCapacities();
 
     Flux<Long> findExistingCapacityIds(List<Long> capacityIds);
+
+    Mono<Void> deleteCapacitiesByIds(List<Long> capacityIds);
 }
