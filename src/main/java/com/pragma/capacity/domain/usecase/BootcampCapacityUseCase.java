@@ -4,18 +4,16 @@ import com.pragma.capacity.domain.api.IBootcampCapacityServicePort;
 import com.pragma.capacity.domain.exception.CapacityNotFoundException;
 import com.pragma.capacity.domain.model.BootcampCapacitiesModel;
 import com.pragma.capacity.domain.model.CapacityModel;
-import com.pragma.capacity.domain.model.CapacityTechnologies;
-import com.pragma.capacity.domain.model.TechnologyModel;
 import com.pragma.capacity.domain.spi.IBootcampCapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ICapacityPersistencePort;
 import com.pragma.capacity.domain.spi.ITechnologyClientPort;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-@Transactional
+import static com.pragma.capacity.domain.util.CapacityTechnologyUtils.attachTechnologies;
+
 public class BootcampCapacityUseCase implements IBootcampCapacityServicePort {
 
     private final ICapacityPersistencePort capacityPersistencePort;
@@ -81,25 +79,7 @@ public class BootcampCapacityUseCase implements IBootcampCapacityServicePort {
                 .flatMap(bootcampCapacity -> bootcampCapacity.capacities().stream())
                 .toList();
 
-        return attachTechnologies(capacities)
+        return attachTechnologies(capacities, technologyClientPort)
                 .thenMany(Flux.fromIterable(bootcampCapacities));
-    }
-
-
-    private Mono<List<CapacityModel>> attachTechnologies(List<CapacityModel> capacities) {
-        List<Long> capacityIds = capacities.stream().map(CapacityModel::getId).toList();
-        if (capacityIds.isEmpty()) {
-            return Mono.just(capacities);
-        }
-
-        return technologyClientPort.getTechnologiesByCapacityIds(capacityIds)
-                .collectMap(CapacityTechnologies::capacityId, CapacityTechnologies::technologies)
-                .map(technologiesByCapacityId -> {
-                    capacities.forEach(capacity -> {
-                        List<TechnologyModel> technologies = technologiesByCapacityId.getOrDefault(capacity.getId(), List.of());
-                        capacity.setTechnologies(technologies);
-                    });
-                    return capacities;
-                });
     }
 }
