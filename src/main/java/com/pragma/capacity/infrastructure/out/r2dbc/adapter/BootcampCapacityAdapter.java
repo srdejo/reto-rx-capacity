@@ -40,6 +40,30 @@ public class BootcampCapacityAdapter implements IBootcampCapacityPersistencePort
                                 new ArrayList<>(capacitiesByBootcampId.getOrDefault(bootcampId, List.of())))));
     }
 
+    @Override
+    public Mono<Void> delete(Long bootcampId) {
+        return bootcampCapacityRepository.deleteByBootcampId(bootcampId);
+    }
+
+    @Override
+    public Mono<BootcampCapacitiesModel> getCapacitiesByBootcampId(Long bootcampId) {
+        return bootcampCapacityRepository.findAllByBootcampId(bootcampId)
+                .map(entity -> new CapacityModel(entity.getCapacityId(), ""))
+                .collectList()
+                .map(capacities -> new BootcampCapacitiesModel(
+                        bootcampId,
+                        capacities
+                ));
+    }
+
+    @Override
+    public Flux<Long> findReferencedCapacityIds(List<Long> capacityIds) {
+        if (capacityIds.isEmpty()) {
+            return Flux.empty();
+        }
+        return bootcampCapacityRepository.findReferencedCapacityIds(capacityIds);
+    }
+
     private CapacityModel toCapacityModel(BootcampCapacityProjection projection) {
         return new CapacityModel(projection.capacityId(), projection.name(), projection.description(), null);
     }

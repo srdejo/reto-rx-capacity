@@ -5,6 +5,7 @@ import com.pragma.capacity.infrastructure.out.r2dbc.projection.BootcampCapacityP
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -17,4 +18,11 @@ public interface IBootcampCapacityRepository extends ReactiveCrudRepository<Boot
             WHERE bc.bootcamp_id IN (:bootcampIds)
             """)
     Flux<BootcampCapacityProjection> findCapacitiesByBootcampIds(List<Long> bootcampIds);
+
+    Flux<BootcampCapacityEntity> findAllByBootcampId(Long bootcampId);
+
+    Mono<Void> deleteByBootcampId(Long bootcampId);
+
+    @Query("SELECT DISTINCT capacity_id FROM bootcamp_capacity WHERE capacity_id IN (:capacityIds)")
+    Flux<Long> findReferencedCapacityIds(List<Long> capacityIds);
 }

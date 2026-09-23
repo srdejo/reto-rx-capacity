@@ -10,4 +10,6 @@ public interface ITechnologyClientPort {
     Mono<Void> associateTechnologies(Long capacityId, List<Long> technologyIds);
 
     Flux<CapacityTechnologies> getTechnologiesByCapacityIds(List<Long> capacityIds);
+
+    Mono<Void> deleteTechnologiesByCapacityIds(List<Long> capacityIds);
 }
