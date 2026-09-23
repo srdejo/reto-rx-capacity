@@ -13,5 +13,7 @@ spring:
 webclient:
   technology: ${WEBCLIENT_TECHNOLOGY:http://localhost:8084/api/v1/technology/capacity-technologies}
 
+allowed-origins: ${ALLOWED_ORIGIN:http://localhost:4200}
+
 appDescription: "Pragma Reactive Capacity"
 appVersion: "1.0.0"
